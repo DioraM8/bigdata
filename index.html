@@ -3,6 +3,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Atlas &amp; Heritage</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root{--blue:#14325c;--gold:#c9962b}
 .navbar{background:var(--blue);position:sticky;top:0;z-index:50}
@@ -20,10 +21,17 @@
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99;display:flex;flex-direction:column;gap:6px}
 #toast div{background:var(--blue);color:#fff;padding:10px 18px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 @media print{.navbar,footer,.no-print,#toast{display:none!important}}
+body{font-family:Inter,system-ui,sans-serif}[data-bs-theme=light] body{background:#f7f4ee}
+h2,h3,h5,.navbar-brand{font-family:'Playfair Display',Georgia,serif}.navbar-brand:before{content:"✦ ";color:var(--gold)}
+.hero h2{font-size:2.1rem}.card{position:relative;border:0;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.ph{position:relative;height:160px;align-items:flex-end;justify-content:flex-start;padding:8px 12px;font-size:.72rem;letter-spacing:1px;text-transform:uppercase;background-color:#14325c}
+.price{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.7);color:#fff;border-radius:20px;padding:3px 11px;font-size:.78rem;text-transform:none;letter-spacing:0}
+.sec{border:0;height:8px;opacity:.7;border-radius:4px;background:repeating-linear-gradient(90deg,var(--gold) 0 10px,transparent 10px 16px)}
+.step{padding:18px}.step i{font-style:normal;font-size:2.2rem;display:block}
 </style></head><body>
 <nav class="navbar navbar-dark px-3 flex-wrap"><a class="navbar-brand" href="#/">Atlas &amp; Heritage</a><div class="d-flex flex-wrap gap-1 align-items-center" id="nav"></div></nav>
 <main class="container my-4" id="app"></main>
-<div id="toast"></div><footer class="text-center text-muted small my-4">Atlas &amp; Heritage demo: data is stored only in your browser</footer>
+<div id="toast"></div><footer class="mt-5 py-4 text-center text-white" style="background:var(--blue)"><div class="container"><div class="navbar-brand mb-1">Atlas &amp; Heritage</div><div class="small opacity-75">Preserving Uzbek tradition, one outfit at a time</div><div class="small opacity-50 mt-2">Tashkent, Uzbekistan | Demo site: data is stored only in your browser</div></div></footer>
 <script>
 const TYPES=['Atlas dress','Doppi','Chapan','Kamzul (vest)','Ikat dress'],REG=['Margilan','Bukhara','Samarkand','Khorezm','Tashkent'],
 OCC=['Wedding','Navruz','Photoshoot','School event','Graduation','Concert'],
@@ -64,21 +72,21 @@ function seed(){return{user:'',lang:'en',wish:[],bookings:[
 reviews:[{b:1,shop:0,r:5,c:'Beautiful dress, perfect fit!',n:'Customer One'},{b:2,shop:1,r:4,c:'Very good, small delay at pickup.',n:'Guest renter'},{b:6,shop:2,r:5,c:'Excellent quality.',n:'Guest renter'}]}}
 let S;try{S=JSON.parse(localStorage.getItem('ah')||'null')||seed()}catch(e){S=seed()}
 const save=()=>{try{localStorage.setItem('ah',JSON.stringify(S))}catch(e){}};
-const BASE=G.length;S.custom=S.custom||[];S.hide=S.hide||[];G.push(...S.custom);
+const BASE=G.length;const PROMO0=[{code:'NAVRUZ10',pct:10},{code:'FIRST15',pct:15}];S.custom=S.custom||[];S.hide=S.hide||[];S.promos=S.promos||PROMO0;S.wait=S.wait||[];G.push(...S.custom);
 const t=k=>L[S.lang][k]||L.en[k]||k;
 const gd=id=>{const r=G[id-1];return{id,shop:r[0],type:r[1],reg:r[2],name:r[3],color:r[4],price:r[5],dep:r[6],occ:r[7],sizes:r[8],img:r[9]||''}};
 const ACT=['pending','confirmed','picked_up'];
 const free=(g,sz,s,e)=>!S.bookings.some(b=>ACT.includes(b.status)&&b.start<=e&&b.end>=s&&b.items.some(i=>i.g===g&&i.s===sz));
-const calc=b=>{const d=days(b.start,b.end);let rent=0,dep=0;b.items.forEach(i=>{const g=gd(i.g);rent+=g.price*d;dep+=g.dep});return{rent,dep}};
+const calc=b=>{const d=days(b.start,b.end);let rent=0,dep=0;b.items.forEach(i=>{const g=gd(i.g);rent+=g.price*d;dep+=g.dep});return{rent:rent*(1-(b.disc||0)/100),dep}};
 const rating=sh=>{const r=S.reviews.filter(x=>x.shop===sh);return r.length?(r.reduce((a,x)=>a+x.r,0)/r.length).toFixed(1)+' ('+r.length+')':null};
 const names=b=>b.items.map(i=>gd(i.g).name+' ('+i.s+')').join(', ');
 function derr(s,e){if(!s||!e)return'Please choose both dates.';if(s<today)return'Start date cannot be in the past.';if(e<s)return'End date must be on or after the start date.';if(days(s,e)>14)return'Maximum rental period is 14 days.';return''}
 const opts=(a,sel,all)=>(all?`<option value="">${all}: ${t('any')}</option>`:'')+a.map((x,i)=>`<option value="${all?i:x}" ${String(sel)===String(all?i:x)?'selected':''}>${esc(x)}</option>`).join('');
 const badge={pending:'warning text-dark',confirmed:'primary',picked_up:'info text-dark',returned:'success',cancelled:'secondary'};
 const alertBox=(m,c='warning')=>m?`<div class="alert alert-${c}">${esc(m)}</div>`:'';
- 
+
 const COL={Red:'#c0392b',Gold:'#d4a017',Black:'#1d1d1d',Green:'#1e8449',Blue:'#1f4e9c',Yellow:'#f1c40f',Burgundy:'#800020',Navy:'#14274e',White:'#f2f2f2',Emerald:'#0b8a5f',Orange:'#e67e22','Royal blue':'#274fc4',Cream:'#f3e9c6'};
-function art(g){if(g.img)return`background:linear-gradient(rgba(0,0,0,.18),rgba(0,0,0,.18)),url('${encodeURI(g.img).replace(/'/g,'%27')}') center/cover`;const c=g.color==='Multicolor'?['#c0392b','#f1c40f','#1e8449','#1f4e9c']:g.color.split('/').map(x=>COL[x.trim()]||'#14325c');
+function art(g){if(g.img)return`background:linear-gradient(rgba(0,0,0,.18),rgba(0,0,0,.18)),url('${encodeURI(g.img).replace(/'/g,'%27')}') center/cover`;const c=g.color==='Multicolor'?['#c0392b','#f1c40f','#1e8449','#1f4e9c']:g.color.split('/').map(x=>COL[x.trim()]||'#14325c');return svgArt(g,c);
 return`background:radial-gradient(circle at 82% 22%,rgba(255,255,255,.3) 0 14%,transparent 15%),repeating-linear-gradient(45deg,${c.map((x,i)=>`${x} ${i*12}px ${i*12+12}px`).join(',')})`}
 const theme=()=>document.documentElement.setAttribute('data-bs-theme',S.theme||'light');
 const cd=b=>b.code||'AH-'+String(b.id).padStart(4,'0').slice(-4);
@@ -86,6 +94,22 @@ function toast(m){const d=document.createElement('div');d.textContent=m;$('#toas
 function cal(g){let h='';for(let i=0;i<28;i++){const d=add(today,i),f=g.sizes.some(z=>free(g.id,z,d,d));h+=`<b class="${f?'ok':'no'}" title="${d}: ${f?'free':'booked'}">${+d.slice(8)}</b>`}
 return`<h6 class="mt-3">Next 28 days <small class="text-muted">(green = free, red = fully booked)</small></h6><div class="cal">${h}</div>`}
 function csv(n,rows){const t=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download=n;a.click()}
+function svgArt(g,c){const a=c[0],b=c[1]||'#d4a017',d=c[2]||'#fff',t=g.type,w=t===4?30:20,
+pat=`<pattern id="p" width="${w}" height="${w}" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="100" height="100" fill="${a}"/><rect width="${t===4?14:8}" height="100" fill="${b}"/><rect x="${t===4?18:12}" width="3" height="100" fill="${d}" opacity=".7"/></pattern>`,
+dress='<path d="M84 22h32l5 36 30 84H49l30-84z" fill="url(#p)" stroke="#e6b84f" stroke-width="2"/><path d="M84 22q16 14 32 0M79 58h42" fill="none" stroke="#e6b84f" stroke-width="3"/>',
+body=[dress,'<path d="M52 112q0-62 48-62t48 62z" fill="url(#p)" stroke="#e6b84f" stroke-width="2"/><rect x="48" y="104" width="104" height="14" rx="3" fill="#111" stroke="#e6b84f"/><circle cx="100" cy="82" r="9" fill="none" stroke="#fff" stroke-width="3" opacity=".8"/>',
+'<path d="M62 24h76l42 40-10 22-26-14v70H56V72L30 86 20 64z" fill="url(#p)" stroke="#e6b84f" stroke-width="2"/><path d="M100 24v118" stroke="#e6b84f" stroke-width="3"/>',
+'<path d="M64 24l36 34 36-34 16 28-10 90H58L48 52z" fill="url(#p)" stroke="#e6b84f" stroke-width="2"/><path d="M100 58v84" stroke="#e6b84f" stroke-width="3"/>',dress][t],
+s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160"><defs><radialGradient id="g" cx=".5" cy=".35" r=".8"><stop offset="0" stop-color="#2b5a9b"/><stop offset="1" stop-color="#0d1f3c"/></radialGradient>${pat}</defs><rect width="200" height="160" fill="url(#g)"/><ellipse cx="100" cy="148" rx="52" ry="6" fill="#000" opacity=".35"/>${t===1?'':'<path d="M100 22v-8a6 6 0 1 1 6 6" fill="none" stroke="#e6b84f" stroke-width="2"/>'}${body}</svg>`;
+return`background:url('data:image/svg+xml,${encodeURIComponent(s)}') center/cover no-repeat`}
+function homeExtra(){const rv=S.reviews.slice(-3).reverse();return`<hr class="sec my-4"><h3 class="text-center mb-3">How it works</h3><div class="row text-center">${[['🔍','Choose','Filter by occasion, region, size and dates'],['📅','Book','Reserve in seconds with a small deposit'],['👗','Wear','Pick up, enjoy the event, return it']].map(x=>`<div class="col-md-4"><div class="step"><i>${x[0]}</i><h5>${x[1]}</h5><p class="text-muted mb-0">${x[2]}</p></div></div>`).join('')}</div>
+<h3 class="text-center my-4">Loved by customers</h3><div class="row">${rv.map(r=>`<div class="col-md-4 mb-3"><div class="card h-100"><div class="card-body"><div class="text-warning">${'★'.repeat(r.r)}</div><p>${esc(r.c)}</p><small class="text-muted">${esc(r.n)}, ${SHOPS[r.shop]}</small></div></div></div>`).join('')}</div>`}
+function kpis(){const bs=S.bookings.filter(b=>b.shop===0),paid=bs.filter(b=>['picked_up','returned'].includes(b.status)),rev=paid.reduce((a,b)=>a+calc(b).rent+(b.status==='returned'?b.fee:0),0),
+act=bs.filter(b=>b.status==='picked_up').length,pend=bs.filter(b=>b.status==='pending').length,rt=rating(0),
+use=G.map((_,i)=>gd(i+1)).filter(g=>g.shop===0).map(g=>{let n=0;for(let i=0;i<28;i++){const d=add(today,i);if(g.sizes.some(z=>!free(g.id,z,d,d)))n++}return[g.name,Math.round(n/28*100),S.wait.filter(w=>w.g===g.id).length]}).sort((a,b)=>b[1]-a[1]).slice(0,5);
+return`<div class="row text-center my-3">${[[money(rev),'Revenue'],[act,'Out with customers'],[pend,'Need confirmation'],[rt||'-','Rating']].map(x=>`<div class="col-6 col-md-3 mb-2"><div class="card"><div class="card-body"><div class="fs-4">${x[0]}</div>${x[1]}</div></div></div>`).join('')}</div><h5>Demand, next 28 days</h5>${use.map(u=>`<div class="mb-2"><small>${esc(u[0])} ${u[2]?`<span class="badge bg-primary">${u[2]} waiting</span>`:''}</small><div class="bar" style="width:${Math.max(8,u[1])}%">${u[1]}% booked</div></div>`).join('')}`}
+function addPromo(ev){ev.preventDefault();const f=ev.target.elements,code=f.code.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12),pct=Math.round(+f.pct.value);
+if(!code||!(pct>=1&&pct<=90))return toast('Enter a code and a 1-90 percent discount');if(S.promos.some(p=>p.code===code))return toast('This code already exists');S.promos.push({code,pct});save();toast('Promo code '+code+' added');owner()}
 function addOutfit(ev){ev.preventDefault();const f=ev.target,v=n=>f.elements[n].value,chk=n=>[...f.querySelectorAll('[name='+n+']:checked')].map(x=>x.value);
 const sizes=chk('sz'),img=v('img').trim();
 if(!sizes.length)return toast('Choose at least one size');if(img&&!/^https?:\/\//.test(img))return toast('Image link must start with https://');if(!(+v('price')>0))return toast('Enter a daily price');
@@ -98,14 +122,14 @@ return`<h5 class="mt-4">Add outfit</h5><form id="ng" class="row g-2"><div class=
 <div class="col-6 col-md-3"><input type="number" min="0" class="form-control" name="dep" placeholder="Deposit"></div><div class="col-md-3"><input class="form-control" name="img" placeholder="Photo link (https://...)"></div>
 <div class="col-12">${SZ.map(z=>`<label class="me-3"><input type="checkbox" name="sz" value="${z}"> ${z}</label>`).join('')}</div>
 <div class="col-12">${OCC.map((z,i)=>`<label class="me-3"><input type="checkbox" name="oc" value="${i}"> ${z}</label>`).join('')}</div><div class="col-12"><button class="btn btn-gold">Add outfit</button></div></form>
-<h5 class="mt-4">Your outfits</h5>`+mine.map(g=>`<div class="border rounded p-2 mb-2 d-flex justify-content-between align-items-center"><span>${esc(g.name)} <small class="text-muted">${g.sizes.join(', ')} | ${money(g.price)}</small></span><button class="btn btn-sm btn-outline-secondary" data-hide="${g.id}">${S.hide.includes(g.id)?'Show':'Hide'}</button></div>`).join('')}
+<h5 class="mt-4">Promo codes</h5><form id="pf" class="row g-2 mb-2"><div class="col-6 col-md-3"><input class="form-control" name="code" placeholder="CODE" required></div><div class="col-6 col-md-2"><input type="number" min="1" max="90" class="form-control" name="pct" placeholder="% off" required></div><div class="col-md-2"><button class="btn btn-gold">Add</button></div></form><div>${S.promos.map(p=>`<span class="badge bg-warning text-dark me-1">${esc(p.code)} -${p.pct}%</span>`).join('')}</div><h5 class="mt-4">Your outfits</h5>`+mine.map(g=>`<div class="border rounded p-2 mb-2 d-flex justify-content-between align-items-center"><span>${esc(g.name)} <small class="text-muted">${g.sizes.join(', ')} | ${money(g.price)}</small></span><button class="btn btn-sm btn-outline-secondary" data-hide="${g.id}">${S.hide.includes(g.id)?'Show':'Hide'}</button></div>`).join('')}
 function nav(){const u=S.user;$('#nav').innerHTML=`<a class="btn btn-sm btn-outline-light" href="#/">${t('catalog')}</a><a class="btn btn-sm btn-outline-light" href="#/wishlist">${t('wish')}</a>`+
 (u==='customer'?`<a class="btn btn-sm btn-outline-light" href="#/bookings">${t('mine')}</a>`:'')+(u==='owner'?`<a class="btn btn-sm btn-gold" href="#/owner">${t('owner')}</a>`:'')+(u==='admin'?`<a class="btn btn-sm btn-gold" href="#/admin">${t('admin')}</a>`:'')+
 `<select class="form-select form-select-sm w-auto" id="who" title="Demo user"><option value="">${t('guest')}</option><option value="customer">${t('customer')}</option><option value="owner">Owner</option><option value="admin">Admin</option></select>
 <button class="btn btn-sm btn-outline-light" id="thm" title="Dark / light">${S.theme==='dark'?'☀':'🌙'}</button><button class="btn btn-sm btn-link text-white" id="lng">${S.lang==='en'?"O'zbekcha":'English'}</button>`;
 $('#who').value=u;$('#who').onchange=e=>{S.user=e.target.value;save();nav();location.hash=u===S.user?location.hash:'#/';route()};
 $('#thm').onclick=()=>{S.theme=S.theme==='dark'?'light':'dark';save();theme();nav()};$('#lng').onclick=()=>{S.lang=S.lang==='en'?'uz':'en';save();nav();route()}}
- 
+
 function catalog(P){const q=(P.get('q')||'').toLowerCase(),reg=P.get('region')||'',typ=P.get('type')||'',oc=P.get('occ')||'',sz=P.get('size')||'',mx=+P.get('max')||0,s=P.get('start')||'',e=P.get('end')||'';
 let dates=false,msg='';if(s||e){msg=derr(s,e);dates=!msg}
 const rows=G.map((_,i)=>gd(i+1)).filter(g=>!S.hide.includes(g.id)&&(!q||(g.name+g.color).toLowerCase().includes(q))&&(reg===''||g.reg==reg)&&(typ===''||g.type==typ)&&(oc===''||g.occ.includes(+oc))&&(!mx||g.price<=mx))
@@ -122,26 +146,26 @@ $('#app').innerHTML=`<div class="hero mb-4"><h2>${t('hero')}</h2><p class="mb-3"
 <div class="col-6 col-md-2"><label class="small">Sort</label><select class="form-select" name="sort"><option value="">Default</option><option value="pa" ${P.get('sort')==='pa'?'selected':''}>Price: low to high</option><option value="pd" ${P.get('sort')==='pd'?'selected':''}>Price: high to low</option><option value="r" ${P.get('sort')==='r'?'selected':''}>Best rated</option></select></div>
 <div class="col-12 col-md-2 d-flex align-items-end"><button class="btn btn-gold w-100">${t('filter')}</button></div></form>
 ${rows.length?'':'<div class="alert alert-info">No outfits match. Try other dates or filters.</div>'}<div class="row">`+rows.map(({g,n})=>{const r=rating(g.shop);
-return`<div class="col-12 col-sm-6 col-lg-4 mb-4"><div class="card h-100 shadow-sm"><div class="ph" style="${art(g)}">${esc(TYPES[g.type])}</div><div class="card-body">
+return`<div class="col-12 col-sm-6 col-lg-4 mb-4"><div class="card h-100 shadow-sm"><div class="ph" style="${art(g)}">${esc(TYPES[g.type])}<span class="price">${money(g.price)}</span></div><div class="card-body">
 <span class="badge bg-secondary">${REG[g.reg]}</span> <span class="badge bg-warning text-dark">${esc(g.color)}</span>
 <h5 class="mt-2"><a class="text-decoration-none" href="#/g/${g.id}${dates?`?start=${s}&end=${e}`:''}">${esc(g.name)}</a></h5>
 <div class="fw-bold">${money(g.price)} <small class="text-muted">${t('day')}</small></div><small class="text-muted">${t('dep')}: ${money(g.dep)}</small><br>
 <small>${SHOPS[g.shop]} | ${r?'★ '+r:'New'}</small><br><small class="text-success">${n} ${t('sizes')}</small></div>
-<div class="card-footer d-flex justify-content-between"><a class="btn btn-sm btn-gold" href="#/g/${g.id}${dates?`?start=${s}&end=${e}`:''}">${t('book')}</a><button class="btn btn-sm ${S.wish.includes(g.id)?'btn-danger':'btn-outline-danger'}" data-h="${g.id}" title="Wishlist">♥</button></div></div></div>`}).join('')+'</div>';
+<div class="card-footer d-flex justify-content-between"><a class="btn btn-sm btn-gold" href="#/g/${g.id}${dates?`?start=${s}&end=${e}`:''}">${t('book')}</a><button class="btn btn-sm ${S.wish.includes(g.id)?'btn-danger':'btn-outline-danger'}" data-h="${g.id}" title="Wishlist">♥</button></div></div></div>`}).join('')+'</div>'+(P.toString()?'':homeExtra());
 $('#f').onsubmit=ev=>{ev.preventDefault();const p=new URLSearchParams(new FormData(ev.target));[...p].forEach(([k,v])=>{if(!v)p.delete(k)});location.hash='#/?'+p};$('#app').onclick=ev=>{const k=+ev.target.dataset.h;if(!k)return;S.wish=S.wish.includes(k)?S.wish.filter(x=>x!==k):[...S.wish,k];save();ev.target.classList.toggle('btn-danger');ev.target.classList.toggle('btn-outline-danger');toast(S.wish.includes(k)?'Saved to wishlist':'Removed from wishlist')}}
- 
+
 function garment(id,P){if(!G[id-1])return $('#app').innerHTML=alertBox('Outfit not found.');const g=gd(id);const s=P.get('start')||'',e=P.get('end')||'';
 let msg='',ok=false;if(s||e){msg=derr(s,e);ok=!msg}
 const fs=ok?g.sizes.filter(x=>free(id,x,s,e)):[];
 const ex=ok?G.map((_,i)=>gd(i+1)).filter(x=>x.shop===g.shop&&x.id!==id&&x.sizes.some(z=>free(x.id,z,s,e))):[];
 const rv=S.reviews.filter(r=>r.shop===g.shop).slice(-5).reverse(),d=ok?days(s,e):0;
-let form='';if(ok){if(!fs.length)form=alertBox('Not available on these dates. Try other dates.');
+let form='';if(ok){if(!fs.length)form=alertBox('Not available on these dates. Try other dates.')+'<button class="btn btn-outline-primary" id="wl">Notify me / join waitlist</button>';
 else if(S.user!=='customer')form=alertBox('Choose "Customer" in the demo user menu (top right) to book.','info');
 else form=`<form id="bk"><label class="form-label">${t('size')}</label><select class="form-select mb-3" id="sz">${fs.map(x=>`<option>${x}</option>`).join('')}</select>
 ${ex.length?`<h6>${t('look')}</h6>`+ex.map(x=>`<div class="d-flex gap-2 align-items-center mb-2"><input type="checkbox" class="form-check-input ex" value="${x.id}"><span class="flex-grow-1">${esc(x.name)} (+${money(x.price)}/day)</span>
 <select class="form-select form-select-sm w-auto" id="x${x.id}">${x.sizes.filter(z=>free(x.id,z,s,e)).map(z=>`<option>${z}</option>`).join('')}</select></div>`).join(''):''}
-<p class="mt-2">${t('total')} (${d} days): <b>${money(d*g.price)}</b> + ${t('dep')} ${money(g.dep)}</p><button class="btn btn-gold">${t('book')}</button></form>`}
-$('#app').innerHTML=`${alertBox(msg)}<div class="row"><div class="col-md-5 mb-3"><div class="ph rounded" style="height:240px;${art(g)}">${esc(TYPES[g.type])}</div></div><div class="col-md-7">
+<div class="input-group mb-2" style="max-width:320px"><input class="form-control" id="promo" placeholder="Promo code (try NAVRUZ10)"><button type="button" class="btn btn-outline-secondary" id="pa">Apply</button></div><div id="pm" class="small text-success mb-2"></div><p class="mt-2">${t('total')} (${d} days): <b>${money(d*g.price)}</b> + ${t('dep')} ${money(g.dep)}</p><button class="btn btn-gold">${t('book')}</button></form>`}
+$('#app').innerHTML=`${alertBox(msg)}<div class="row"><div class="col-md-5 mb-3"><div class="ph rounded" style="height:300px;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.25);${art(g)}">${esc(TYPES[g.type])}</div></div><div class="col-md-7">
 <h3>${esc(g.name)}</h3><span class="badge bg-secondary">${REG[g.reg]}</span> <span class="badge bg-warning text-dark">${TYPES[g.type]}</span> ${g.occ.map(o=>`<span class="badge bg-info text-dark">${OCC[o]}</span>`).join(' ')}
 <p class="mt-3"><b>${money(g.price)}</b> ${t('day')} | ${t('dep')}: ${money(g.dep)}<br>${SHOPS[g.shop]}</p>
 <a class="btn btn-sm btn-outline-primary mb-3 me-1" target="_blank" rel="noopener" href="https://t.me/share/url?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(g.name)}">Telegram</a><a class="btn btn-sm btn-outline-success mb-3 me-1" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(g.name+' '+location.href)}">WhatsApp</a><button class="btn btn-sm btn-outline-danger mb-3" id="w">${S.wish.includes(id)?'Remove from wishlist':'Add to wishlist'}</button>
@@ -149,13 +173,13 @@ $('#app').innerHTML=`${alertBox(msg)}<div class="row"><div class="col-md-5 mb-3"
 <div class="col-auto"><button class="btn btn-outline-dark">Check availability</button></div></form>${form}${cal(g)}</div></div>
 <h5 class="mt-4">Shop reviews</h5>${rv.length?rv.map(r=>`<div class="border rounded p-2 mb-2">★ ${r.r}/5 - <b>${esc(r.n)}</b><br>${esc(r.c)}</div>`).join(''):'<p class="text-muted">No reviews yet.</p>'}`;
 $('#w').onclick=()=>{S.wish=S.wish.includes(id)?S.wish.filter(x=>x!==id):[...S.wish,id];save();garment(id,P)};
-$('#dt').onsubmit=ev=>{ev.preventDefault();location.hash=`#/g/${id}?`+new URLSearchParams(new FormData(ev.target))};
-const bk=$('#bk');if(bk)bk.onsubmit=ev=>{ev.preventDefault();const items=[{g:id,s:$('#sz').value}];document.querySelectorAll('.ex:checked').forEach(c=>items.push({g:+c.value,s:$('#x'+c.value).value}));
+const wl=$('#wl');if(wl)wl.onclick=()=>{S.wait.push({g:id,start:s,end:e,user:S.user||'guest'});save();toast('You are on the waitlist')};$('#dt').onsubmit=ev=>{ev.preventDefault();location.hash=`#/g/${id}?`+new URLSearchParams(new FormData(ev.target))};
+const bk=$('#bk');if(bk){$('#pa').onclick=()=>{const pr=S.promos.find(p=>p.code===$('#promo').value.trim().toUpperCase());$('#pm').textContent=pr?'Code applied: '+pr.pct+'% off the rental price':'Invalid code'}}if(bk)bk.onsubmit=ev=>{ev.preventDefault();const items=[{g:id,s:$('#sz').value}];document.querySelectorAll('.ex:checked').forEach(c=>items.push({g:+c.value,s:$('#x'+c.value).value}));
 if(!items.every(i=>free(i.g,i.s,s,e)))return toast('Sorry, one of these was just booked.');
-const code='AH-'+Math.random().toString(36).slice(2,8).toUpperCase();S.bookings.push({id:Date.now(),user:'customer',shop:g.shop,start:s,end:e,status:'pending',items,fee:0,code});save();toast('Booking created! Ticket '+code);location.hash='#/bookings'}}
- 
+const pr=S.promos.find(p=>p.code===$('#promo').value.trim().toUpperCase());const code='AH-'+Math.random().toString(36).slice(2,8).toUpperCase();S.bookings.push({id:Date.now(),user:'customer',shop:g.shop,start:s,end:e,status:'pending',items,fee:0,code,disc:pr?pr.pct:0});save();toast('Booking created! Ticket '+code);location.hash='#/bookings'}}
+
 function wishlist(){$('#app').innerHTML=`<h3>${t('wish')}</h3>`+(S.wish.length?S.wish.map(id=>{const g=gd(id);return`<div class="border rounded p-3 mb-2"><a href="#/g/${id}"><b>${esc(g.name)}</b></a><br><small>${SHOPS[g.shop]} | ${money(g.price)} ${t('day')}</small></div>`}).join(''):'<p class="text-muted">Nothing saved yet.</p>')}
- 
+
 function mine(){if(S.user!=='customer')return $('#app').innerHTML=alertBox('Choose "Customer" in the demo user menu.','info');
 const bs=S.bookings.filter(b=>b.user==='customer').slice().reverse();
 $('#app').innerHTML=`<h3>${t('mine')}</h3>`+(bs.length?bs.map(b=>{const c=calc(b),rv=S.reviews.find(r=>r.b===b.id);
@@ -166,18 +190,18 @@ ${b.status==='returned'&&!rv?`<div class="row g-2 mt-2"><div class="col-auto"><s
 ${rv?`<div class="small mt-1">Your rating: ★ ${rv.r}/5</div>`:''}</div></div>`}).join(''):'<p class="text-muted">No bookings yet.</p>');
 $('#app').onclick=ev=>{const d=ev.target.dataset;if(d.c){S.bookings.find(b=>b.id==d.c).status='cancelled';save();toast('Booking cancelled');mine()}
 if(d.r){const b=S.bookings.find(b=>b.id==d.r);S.reviews.push({b:b.id,shop:b.shop,r:+$('#r'+d.r).value,c:$('#c'+d.r).value.slice(0,300),n:'Customer One'});save();toast('Thank you for your review!');mine()}}}
- 
+
 function owner(){if(S.user!=='owner')return $('#app').innerHTML=alertBox('Choose "Owner" in the demo user menu.','info');
 const bs=S.bookings.filter(b=>b.shop===0).slice().reverse();
-$('#app').innerHTML=`<h3>${SHOPS[0]}</h3><h5 class="mt-3">Bookings</h5><div class="table-responsive"><table class="table table-sm align-middle"><tr><th>Ticket</th><th>Items</th><th>Dates</th><th>Rent / Deposit</th><th>Status</th><th>Action</th></tr>`+
+$('#app').innerHTML=`<h3>${SHOPS[0]}</h3>${kpis()}<h5 class="mt-3">Bookings</h5><div class="table-responsive"><table class="table table-sm align-middle"><tr><th>Ticket</th><th>Items</th><th>Dates</th><th>Rent / Deposit</th><th>Status</th><th>Action</th></tr>`+
 bs.map(b=>{const c=calc(b);return`<tr><td>${cd(b)}</td><td>${esc(names(b))}</td><td>${b.start}<br>${b.end}</td><td>${money(c.rent)}<br><small>${money(c.dep)}</small></td><td>${b.status}</td><td>
 ${b.status==='pending'?`<button class="btn btn-sm btn-success" data-a="confirmed" data-id="${b.id}">Confirm</button> `:''}
 ${b.status==='confirmed'?`<button class="btn btn-sm btn-primary" data-a="picked_up" data-id="${b.id}">Handover + collect</button> `:''}
 ${b.status==='picked_up'?`<input type="number" min="0" value="0" id="fee${b.id}" class="form-control form-control-sm d-inline-block" style="width:90px" title="Damage fee"> <button class="btn btn-sm btn-success" data-a="returned" data-id="${b.id}">Returned</button> `:''}
-${['pending','confirmed'].includes(b.status)?`<button class="btn btn-sm btn-outline-danger" data-a="cancelled" data-id="${b.id}">Cancel</button>`:''}</td></tr>`}).join('')+'</table></div><button class="btn btn-sm btn-outline-secondary" id="ex">Export CSV</button>'+ownerForms();$('#ex').onclick=()=>csv('bookings.csv',[['Ticket','Items','Start','End','Status'],...bs.map(b=>[cd(b),names(b),b.start,b.end,b.status])]);$('#ng').onsubmit=addOutfit;
+${['pending','confirmed'].includes(b.status)?`<button class="btn btn-sm btn-outline-danger" data-a="cancelled" data-id="${b.id}">Cancel</button>`:''}</td></tr>`}).join('')+'</table></div><button class="btn btn-sm btn-outline-secondary" id="ex">Export CSV</button>'+ownerForms();$('#ex').onclick=()=>csv('bookings.csv',[['Ticket','Items','Start','End','Status'],...bs.map(b=>[cd(b),names(b),b.start,b.end,b.status])]);$('#ng').onsubmit=addOutfit;$('#pf').onsubmit=addPromo;
 $('#app').onclick=ev=>{const d=ev.target.dataset;if(d.hide){const k=+d.hide;S.hide=S.hide.includes(k)?S.hide.filter(x=>x!==k):[...S.hide,k];save();toast('Visibility changed');return owner()}if(!d.a)return;const b=S.bookings.find(x=>x.id==d.id);b.status=d.a;
 if(d.a==='returned')b.fee=Math.max(0,Math.min(+$('#fee'+d.id).value||0,calc(b).dep));save();toast('Booking '+d.a.replace('_',' '));owner()}}
- 
+
 function admin(){if(S.user!=='admin')return $('#app').innerHTML=alertBox('Choose "Admin" in the demo user menu.','info');
 const live=S.bookings.filter(b=>b.status!=='cancelled'),top={},mon={},st={};
 live.forEach(b=>{b.items.forEach(i=>top[i.g]=(top[i.g]||0)+1);const m=b.start.slice(0,7);mon[m]=(mon[m]||0)+1});S.bookings.forEach(b=>st[b.status]=(st[b.status]||0)+1);
@@ -189,10 +213,9 @@ $('#app').innerHTML=`<h3>Admin analytics</h3><div class="row text-center mb-3">$
 <div class="col-12"><h5>Revenue and rating per shop</h5>${tb(['Shop','Rentals','Revenue','Rating'],rev.map(r=>[r[0],r[1],money(r[2]),r[3]]))}${rev.map(r=>`<div class="mt-2"><small>${r[0]}</small><div class="bar" style="width:${Math.max(8,r[2]/(Math.max(...rev.map(x=>x[2]))||1)*100)}%">${money(r[2])}</div></div>`).join('')}</div>
 <div class="col-md-6"><h5>Bookings by status</h5>${tb(['Status','Count'],Object.entries(st))}</div></div>
 <button class="btn btn-sm btn-outline-secondary me-2" id="bk2">Backup JSON</button><label class="btn btn-sm btn-outline-secondary me-2 mb-0">Restore<input type="file" id="rf" accept=".json" hidden></label><button class="btn btn-sm btn-outline-secondary me-2" id="ex">Export bookings CSV</button><button class="btn btn-sm btn-outline-secondary" id="rs">Reset demo data</button>`;
-$('#bk2').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='atlas-backup.json';a.click()};$('#rf').onchange=ev=>{const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.bookings))throw 0;S=d;S.custom=S.custom||[];S.hide=S.hide||[];S.wish=S.wish||[];S.reviews=S.reviews||[];G.length=BASE;G.push(...S.custom);save();toast('Backup restored');admin()}catch(x){toast('Invalid backup file')}};r.readAsText(ev.target.files[0])};$('#ex').onclick=()=>csv('all-bookings.csv',[['Ticket','Shop','Items','Start','End','Status'],...S.bookings.map(b=>[cd(b),SHOPS[b.shop],names(b),b.start,b.end,b.status])]);$('#rs').onclick=()=>{if(confirm('Reset all demo data?')){S=seed();S.custom=[];S.hide=[];G.length=BASE;save();nav();location.hash='#/';route()}}}
- 
+$('#bk2').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='atlas-backup.json';a.click()};$('#rf').onchange=ev=>{const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.bookings))throw 0;S=d;S.custom=S.custom||[];S.hide=S.hide||[];S.wish=S.wish||[];S.reviews=S.reviews||[];S.promos=S.promos||PROMO0;S.wait=S.wait||[];G.length=BASE;G.push(...S.custom);save();toast('Backup restored');admin()}catch(x){toast('Invalid backup file')}};r.readAsText(ev.target.files[0])};$('#ex').onclick=()=>csv('all-bookings.csv',[['Ticket','Shop','Items','Start','End','Status'],...S.bookings.map(b=>[cd(b),SHOPS[b.shop],names(b),b.start,b.end,b.status])]);$('#rs').onclick=()=>{if(confirm('Reset all demo data?')){S=seed();S.custom=[];S.hide=[];S.promos=PROMO0.slice();S.wait=[];G.length=BASE;save();nav();location.hash='#/';route()}}}
+
 function route(){const[p,q]=location.hash.slice(1).split('?'),P=new URLSearchParams(q||''),m=(p||'').match(/^\/g\/(\d+)/);$('#app').onclick=null;const A=$('#app');A.style.animation='none';void A.offsetWidth;A.style.animation='';window.scrollTo(0,0);
 if(m)garment(+m[1],P);else if(p==='/wishlist')wishlist();else if(p==='/bookings')mine();else if(p==='/owner')owner();else if(p==='/admin')admin();else catalog(P)}
 window.addEventListener('hashchange',route);theme();nav();route();
 </script></body></html>
- 
